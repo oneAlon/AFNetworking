@@ -441,9 +441,9 @@
 		298D7CD11BC2CABE00FD3B3E /* AFNetworking Tests */ = {
 			isa = PBXGroup;
 			children = (
+				298D7C831BC2C88F00FD3B3E /* AFHTTPSessionManagerTests.m */,
 				298D7C811BC2C88F00FD3B3E /* AFHTTPRequestSerializationTests.m */,
 				298D7C821BC2C88F00FD3B3E /* AFHTTPResponseSerializationTests.m */,
-				298D7C831BC2C88F00FD3B3E /* AFHTTPSessionManagerTests.m */,
 				298D7C851BC2C88F00FD3B3E /* AFJSONSerializationTests.m */,
 				2D45638F1DB1179D00AE4812 /* AFXMLParserResponseSerializerTests.m */,
 				2D4563931DB11DDB00AE4812 /* AFXMLDocumentResponseSerializerTests.m */,

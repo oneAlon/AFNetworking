@@ -65,6 +65,15 @@
 
 #pragma mark -
 
+- (void)test {
+    NSDictionary *dict = @{
+                           @"name" : @"?",
+                           @"age" : @"18"
+                           };
+    NSString *str = AFQueryStringFromParameters(dict);
+    NSLog(@"%@", str);
+}
+
 - (void)testThatAFHTTPRequestSerializationSerializesPOSTRequestsProperly {
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"http://example.com"]];
     request.HTTPMethod = @"POST";

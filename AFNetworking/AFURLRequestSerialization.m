@@ -206,15 +206,18 @@ static void *AFHTTPRequestSerializerObserverContext = &AFHTTPRequestSerializerOb
     self.stringEncoding = NSUTF8StringEncoding;
 
     self.mutableHTTPRequestHeaders = [NSMutableDictionary dictionary];
+    // 文件的多读单写操作, 使用GCD栅栏函数实现, 队列必须是手动创建的并发队列.
     self.requestHeaderModificationQueue = dispatch_queue_create("requestHeaderModificationQueue", DISPATCH_QUEUE_CONCURRENT);
 
     // Accept-Language HTTP Header; see http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4
     NSMutableArray *acceptLanguagesComponents = [NSMutableArray array];
     [[NSLocale preferredLanguages] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        // q代表权重
         float q = 1.0f - (idx * 0.1f);
         [acceptLanguagesComponents addObject:[NSString stringWithFormat:@"%@;q=%0.1g", obj, q]];
         *stop = q <= 0.5f;
     }];
+    // 设置支持的语言
     [self setValue:[acceptLanguagesComponents componentsJoinedByString:@", "] forHTTPHeaderField:@"Accept-Language"];
 
     NSString *userAgent = nil;
@@ -228,12 +231,14 @@ static void *AFHTTPRequestSerializerObserverContext = &AFHTTPRequestSerializerOb
     userAgent = [NSString stringWithFormat:@"%@/%@ (Mac OS X %@)", [[NSBundle mainBundle] infoDictionary][(__bridge NSString *)kCFBundleExecutableKey] ?: [[NSBundle mainBundle] infoDictionary][(__bridge NSString *)kCFBundleIdentifierKey], [[NSBundle mainBundle] infoDictionary][@"CFBundleShortVersionString"] ?: [[NSBundle mainBundle] infoDictionary][(__bridge NSString *)kCFBundleVersionKey], [[NSProcessInfo processInfo] operatingSystemVersionString]];
 #endif
     if (userAgent) {
+        // 是否能转换为ADCII码
         if (![userAgent canBeConvertedToEncoding:NSASCIIStringEncoding]) {
             NSMutableString *mutableUserAgent = [userAgent mutableCopy];
             if (CFStringTransform((__bridge CFMutableStringRef)(mutableUserAgent), NULL, (__bridge CFStringRef)@"Any-Latin; Latin-ASCII; [:^ASCII:] Remove", false)) {
                 userAgent = mutableUserAgent;
             }
         }
+        // 设置哭护短的操作系统 版本 CPU类型 等信息
         [self setValue:userAgent forHTTPHeaderField:@"User-Agent"];
     }
 
@@ -516,6 +521,11 @@ forHTTPHeaderField:(NSString *)field
         if (!query) {
             query = @"";
         }
+        /*
+         application/x-www-form-urlencoded：数据被编码为名称/值对。这是标准的编码格式。(默认使用这种格式)
+         multipart/form-data： 数据被编码为一条消息，页上的每个控件对应消息中的一个部分。(上传文件需要用到这种)
+         text/plain： 数据以纯文本形式(text/json/xml/html)进行编码，其中不含任何控件或格式字符。postman软件里标的是RAW。
+         */
         if (![mutableRequest valueForHTTPHeaderField:@"Content-Type"]) {
             [mutableRequest setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
         }
